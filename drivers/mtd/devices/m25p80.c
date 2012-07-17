@@ -93,6 +93,7 @@ struct m25p {
 	u8			erase_opcode;
 	u8			*command;
 	bool			fast_read;
+	size_t			max_read_len;
 };
 
 static inline struct m25p *mtd_to_m25p(struct mtd_info *mtd)
@@ -344,6 +345,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
 	struct spi_transfer t[2];
 	struct spi_message m;
 	uint8_t opcode;
+	loff_t ofs;
 
 	pr_debug("%s: %s from 0x%08x, len %zd\n", dev_name(&flash->spi->dev),
 			__func__, (u32)from, len);
@@ -359,18 +361,9 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
 	t[0].len = m25p_cmdsz(flash) + (flash->fast_read ? 1 : 0);
 	spi_message_add_tail(&t[0], &m);
 
-	t[1].rx_buf = buf;
-	t[1].len = len;
 	spi_message_add_tail(&t[1], &m);
 
 	mutex_lock(&flash->lock);
-
-	/* Wait till previous write/erase is done. */
-	if (wait_till_ready(flash)) {
-		/* REVISIT status return?? */
-		mutex_unlock(&flash->lock);
-		return 1;
-	}
 
 	/* FIXME switch to OPCODE_FAST_READ.  It's required for higher
 	 * clocks; and at this writing, every chip this driver handles
@@ -380,12 +373,44 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
 	/* Set up the write data buffer. */
 	opcode = flash->fast_read ? OPCODE_FAST_READ : OPCODE_NORM_READ;
 	flash->command[0] = opcode;
-	m25p_addr2cmd(flash, from, flash->command);
 
-	spi_sync(flash->spi, &m);
+	ofs = 0;
+	while (len) {
+		size_t readlen;
+		size_t done;
+		int ret;
 
-	*retlen = m.actual_length - m25p_cmdsz(flash) -
+		ret = wait_till_ready(flash);
+		if (ret) {
+			mutex_unlock(&flash->lock);
+			return 1;
+		}
+
+		if (flash->max_read_len > 0 &&
+		    flash->max_read_len < len)
+			readlen = flash->max_read_len;
+		else
+			readlen = len;
+
+		t[1].rx_buf = buf + ofs;
+		t[1].len = readlen;
+
+		m25p_addr2cmd(flash, from + ofs, flash->command);
+
+		spi_sync(flash->spi, &m);
+
+		done = m.actual_length - m25p_cmdsz(flash) -
 			(flash->fast_read ? 1 : 0);
+		if (done != readlen) {
+			mutex_unlock(&flash->lock);
+			return 1;
+		}
+
+		ofs += done;
+		len -= done;
+	}
+
+	*retlen = ofs;
 
 	mutex_unlock(&flash->lock);
 
@@ -1015,6 +1040,12 @@ static int m25p_probe(struct spi_device *spi)
 	if (JEDEC_MFR(info->jedec_id) == CFI_MFR_ST) {
 		flash->mtd._lock = m25p80_lock;
 		flash->mtd._unlock = m25p80_unlock;
+	}
+
+	if (data && data->max_read_len) {
+		flash->max_read_len = data->max_read_len;
+		dev_warn(&spi->dev, "max_read_len set to %d bytes\n",
+			flash->max_read_len);
 	}
 
 	/* sst flash chips use AAI word program */
