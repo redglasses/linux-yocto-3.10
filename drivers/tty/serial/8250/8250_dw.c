@@ -124,6 +124,48 @@ static unsigned int dw8250_serial_in32(struct uart_port *p, int offset)
 	return dw8250_modify_msr(p, offset, value);
 }
 
+#define LPSS_PRV_CLK			0x800
+#define LPSS_PRV_CLK_EN			(1 << 0)
+#define LPSS_PRV_CLK_M_VAL_SHIFT	1
+#define LPSS_PRV_CLK_N_VAL_SHIFT	16
+#define LPSS_PRV_CLK_UPDATE		(1 << 31)
+
+static void
+dw8250_set_termios(struct uart_port *p, struct ktermios *termios,
+		   struct ktermios *old)
+{
+	unsigned int baud = tty_termios_baud_rate(termios);
+	unsigned int m = 6912;
+	unsigned int n = 15625;
+	u32 reg;
+
+	/*
+	 * For baud rates 1000000, 2000000 and 4000000 the dividers must be
+	 * adjusted.
+	 */
+	if (baud == 1000000 || baud == 2000000 || baud == 4000000) {
+		m = 64;
+		n = 100;
+
+		p->uartclk = 64000000;
+	} else if (baud == 3000000) {
+		m = 48;
+		n = 100;
+
+		p->uartclk = 48000000;
+	} else {
+		p->uartclk = 44236800;
+	}
+
+	/* Reset the clock */
+	reg = (m << LPSS_PRV_CLK_M_VAL_SHIFT) | (n << LPSS_PRV_CLK_N_VAL_SHIFT);
+	writel(reg, p->membase + LPSS_PRV_CLK);
+	reg |= LPSS_PRV_CLK_EN | LPSS_PRV_CLK_UPDATE;
+	writel(reg, p->membase + LPSS_PRV_CLK);
+
+	serial8250_do_set_termios(p, termios, old);
+}
+
 static int dw8250_handle_irq(struct uart_port *p)
 {
 	struct dw8250_data *d = p->private_data;
@@ -265,6 +307,7 @@ static int dw8250_probe_acpi(struct uart_8250_port *up,
 	p->iotype = UPIO_MEM32;
 	p->serial_in = dw8250_serial_in32;
 	p->serial_out = dw8250_serial_out32;
+	p->set_termios = dw8250_set_termios;
 	p->regshift = 2;
 
 	if (!p->uartclk)
