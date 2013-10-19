@@ -700,6 +700,12 @@ static inline struct array_cache *cpu_cache_get(struct kmem_cache *cachep)
 	return cachep->array[smp_processor_id()];
 }
 
+static inline struct array_cache *cpu_cache_get_on_cpu(struct kmem_cache *cachep,
+						       int cpu)
+{
+	return cachep->array[cpu];
+}
+
 static size_t slab_mgmt_size(size_t nr_objs, size_t align)
 {
 	return ALIGN(sizeof(struct slab)+nr_objs*sizeof(kmem_bufctl_t), align);
@@ -1233,11 +1239,11 @@ static int init_cache_node_node(int node)
 			cachep->node[node] = n;
 		}
 
-		local_spin_lock_irq(slab_lock, &cachep->nodelists[node]->list_lock);
+		local_spin_lock_irq(slab_lock, &cachep->node[node]->list_lock);
 		cachep->node[node]->free_limit =
 			(1 + nr_cpus_node(node)) *
 			cachep->batchcount + cachep->num;
-		local_spin_unlock_irq(slab_lock, &cachep->nodelists[node]->list_lock);
+		local_spin_unlock_irq(slab_lock, &cachep->node[node]->list_lock);
 	}
 	return 0;
 }
@@ -1270,7 +1276,6 @@ static void __cpuinit cpuup_canceled(long cpu)
 			free_block(cachep, nc->entry, nc->avail, node);
 
 		if (!cpumask_empty(mask)) {
-			local_spin_unlock_irq(slab_lock, &n->list_lock);
 			unlock_l3_and_free_delayed(&n->list_lock);
 			goto free_array_cache;
 		}
@@ -1285,7 +1290,6 @@ static void __cpuinit cpuup_canceled(long cpu)
 		alien = n->alien;
 		n->alien = NULL;
 
-		local_spin_unlock_irq(slab_lock, &n->list_lock);
 		unlock_l3_and_free_delayed(&n->list_lock);
 
 		kfree(shared);
@@ -2519,7 +2523,7 @@ static void drain_array(struct kmem_cache *cachep, struct kmem_cache_node *n,
 			struct array_cache *ac,
 			int force, int node);
 
-static void __do_drain(void *arg, unsigned int cpu)+static void __do_drain(void *arg, unsigned int cpu)
+static void __do_drain(void *arg, unsigned int cpu)
 {
 	struct kmem_cache *cachep = arg;
 	struct array_cache *ac;
@@ -4060,7 +4064,7 @@ static int __do_tune_cpucache(struct kmem_cache *cachep, int limit,
 				    &cachep->node[cpu_to_mem(i)]->list_lock);
 		free_block(cachep, ccold->entry, ccold->avail, cpu_to_mem(i));
 
-		unlock_l3_and_free_delayed(&cachep->nodelists[cpu_to_mem(i)]->list_lock);
+		unlock_l3_and_free_delayed(&cachep->node[cpu_to_mem(i)]->list_lock);
 		kfree(ccold);
 	}
 	kfree(new);
