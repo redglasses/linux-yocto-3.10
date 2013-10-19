@@ -16,18 +16,14 @@
 static inline void __swait_enqueue(struct swait_head *head, struct swaiter *w)
 {
 	list_add(&w->node, &head->list);
+	/* We can't let the condition leak before the setting of head */
+	smp_mb();
 }
 
 /* Removes w from head->list. Must be called with head->lock locked. */
 static inline void __swait_dequeue(struct swaiter *w)
 {
 	list_del_init(&w->node);
-}
-
-/* Check whether a head has waiters enqueued */
-static inline bool swait_head_has_waiters(struct swait_head *h)
-{
-	return !list_empty(&h->list);
 }
 
 void __init_swait_head(struct swait_head *head, struct lock_class_key *key)
@@ -108,7 +104,7 @@ __swait_wake(struct swait_head *head, unsigned int state, unsigned int num)
 	unsigned long flags;
 	int woken;
 
-	if (!swait_head_has_waiters(head))
+	if (!swaitqueue_active(head))
 		return 0;
 
 	raw_spin_lock_irqsave(&head->lock, flags);
