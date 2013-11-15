@@ -42,6 +42,7 @@
 #include <linux/mmc/host.h>
 #include <linux/mmc/pm.h>
 #include <linux/mmc/sdhci.h>
+#include <linux/mmc/slot-gpio.h>
 
 #include "sdhci.h"
 
@@ -340,8 +341,9 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
 		goto err_free;
 
 	if (sdhci_acpi_flag(c, SDHCI_ACPI_SD_CD)) {
-		if (sdhci_acpi_add_own_cd(dev, gpio, host->mmc))
+		if (mmc_gpio_request_cd(host->mmc, gpio, 0)) {
 			c->use_runtime_pm = false;
+		}
 	}
 
 	if (c->use_runtime_pm) {
