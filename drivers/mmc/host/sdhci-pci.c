@@ -355,7 +355,8 @@ static const struct sdhci_pci_fixes sdhci_intel_byt_sdio = {
 };
 
 static const struct sdhci_pci_fixes sdhci_intel_byt_sd = {
-	.quirks2	= SDHCI_QUIRK2_CARD_ON_NEEDS_BUS_ON,
+	.quirks2	= SDHCI_QUIRK2_CARD_ON_NEEDS_BUS_ON |
+			  SDHCI_QUIRK2_BROKEN_DDR50,
 	.allow_runtime_pm = true,
 	.own_cd_for_runtime_pm = true,
 };
