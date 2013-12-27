@@ -469,7 +469,7 @@ endif
 
 config X86_INTEL_LPSS
 	bool "Intel Low Power Subsystem Support"
-	depends on ACPI
+	depends on ACPI || PCI
 	select COMMON_CLK
 	select PINCTRL
 	---help---
