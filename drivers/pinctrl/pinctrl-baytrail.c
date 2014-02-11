@@ -448,6 +448,36 @@ static const struct irq_domain_ops byt_gpio_irq_ops = {
 	.map = byt_gpio_irq_map,
 };
 
+#ifdef CONFIG_PINCTRL_BAYTRAIL_DEVICE
+static int byt_gpio_irq_enable(unsigned hwirq, struct platform_device *pdev)
+{
+	struct io_apic_irq_attr irq_attr;
+	struct device *dev = &pdev->dev;
+	/*
+	 *  Since PCI BIOS is not able to provide IRQ mapping to
+	 *  IRQ24 and onward, we need register to ioapic directly
+	 *  and hardcode pci->irq= hwirq
+	 */
+	irq_attr.ioapic = mp_find_ioapic(hwirq);
+	if (irq_attr.ioapic < 0) {
+		dev_err(&pdev->dev,
+			"Unable to locate IOAPIC for IRQ=%d\n", hwirq);
+		return irq_attr.ioapic;
+	}
+	irq_attr.ioapic_pin = hwirq;
+	irq_attr.trigger = 1;	/* level */
+	irq_attr.polarity = 1;	/* active low */
+	io_apic_set_pci_routing(dev, hwirq, &irq_attr);
+	return 0;
+
+}
+#else
+static int byt_gpio_irq_enable(unsigned hwirq, struct platform_device *pdev)
+{
+	return 0;
+}
+#endif
+
 static int byt_gpio_probe(struct platform_device *pdev)
 {
 	struct byt_gpio *vg;
@@ -523,6 +553,11 @@ static int byt_gpio_probe(struct platform_device *pdev)
 	if (irq_rc && irq_rc->start) {
 		hwirq = irq_rc->start;
 		gc->to_irq = byt_gpio_to_irq;
+		ret = byt_gpio_irq_enable(hwirq, pdev);
+		if (ret) {
+			dev_err(&pdev->dev, "failed to add GPIO to APIC\n");
+			return ret;
+		}
 
 		vg->domain = irq_domain_add_linear(NULL, gc->ngpio,
 						   &byt_gpio_irq_ops, vg);
@@ -534,8 +569,10 @@ static int byt_gpio_probe(struct platform_device *pdev)
 		irq_set_handler_data(hwirq, vg);
 		irq_set_chained_handler(hwirq, byt_gpio_irq_handler);
 
+#ifndef CONFIG_PINCTRL_BAYTRAIL_DEVICE
 		/* Register interrupt handlers for gpio signaled acpi events */
 		acpi_gpiochip_request_interrupts(gc);
+#endif
 	}
 
 	pm_runtime_enable(dev);
