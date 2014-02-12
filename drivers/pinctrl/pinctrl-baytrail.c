@@ -196,11 +196,14 @@ static void byt_gpio_free(struct gpio_chip *chip, unsigned offset)
 	struct byt_gpio *vg = to_byt_gpio(chip);
 	void __iomem *reg = byt_gpio_reg(&vg->chip, offset, BYT_CONF0_REG);
 	u32 value;
+	unsigned int virq;
 
 	/* clear interrupt triggering */
 	value = readl(reg);
 	value &= ~(BYT_TRIG_POS | BYT_TRIG_NEG | BYT_TRIG_LVL);
 	writel(value, reg);
+	virq = irq_find_mapping(vg->domain, offset);
+	irq_dispose_mapping(virq);
 
 	pm_runtime_put(&vg->pdev->dev);
 }
