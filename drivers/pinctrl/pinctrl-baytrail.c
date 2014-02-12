@@ -35,6 +35,7 @@
 #include <linux/io.h>
 #include <linux/pm_runtime.h>
 #include <linux/pinctrl/pinctrl.h>
+#include <linux/pinctrl/pinctrl-byt.h>
 
 /* memory mapped register offsets */
 #define BYT_CONF0_REG		0x000
@@ -453,15 +454,19 @@ static int byt_gpio_probe(struct platform_device *pdev)
 	struct gpio_chip *gc;
 	struct resource *mem_rc, *irq_rc;
 	struct device *dev = &pdev->dev;
-	struct acpi_device *acpi_dev;
 	struct pinctrl_gpio_range *range;
-	acpi_handle handle = ACPI_HANDLE(dev);
 	unsigned hwirq;
 	int ret;
 
+#ifdef CONFIG_PINCTRL_BAYTRAIL_DEVICE
+	struct byt_pinctrl_port *platform_data = dev->platform_data;
+#else
+	struct acpi_device *acpi_dev;
+	acpi_handle handle = ACPI_HANDLE(dev);
+
 	if (acpi_bus_get_device(handle, &acpi_dev))
 		return -ENODEV;
-
+#endif
 	vg = devm_kzalloc(dev, sizeof(struct byt_gpio), GFP_KERNEL);
 	if (!vg) {
 		dev_err(&pdev->dev, "can't allocate byt_gpio chip data\n");
@@ -469,7 +474,11 @@ static int byt_gpio_probe(struct platform_device *pdev)
 	}
 
 	for (range = byt_ranges; range->name; range++) {
+#ifdef CONFIG_PINCTRL_BAYTRAIL_DEVICE
+		if (!strcmp(platform_data->unique_id, range->name)) {
+#else
 		if (!strcmp(acpi_dev->pnp.unique_id, range->name)) {
+#endif
 			vg->chip.ngpio = range->npins;
 			vg->range = range;
 			break;
@@ -549,11 +558,13 @@ static const struct dev_pm_ops byt_gpio_pm_ops = {
 	.runtime_resume = byt_gpio_runtime_resume,
 };
 
+#ifndef CONFIG_PINCTRL_BAYTRAIL_DEVICE
 static const struct acpi_device_id byt_gpio_acpi_match[] = {
 	{ "INT33B2", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, byt_gpio_acpi_match);
+#endif
 
 static int byt_gpio_remove(struct platform_device *pdev)
 {
@@ -574,8 +585,10 @@ static struct platform_driver byt_gpio_driver = {
 	.driver         = {
 		.name   = "byt_gpio",
 		.owner  = THIS_MODULE,
+#ifndef CONFIG_PINCTRL_BAYTRAIL_DEVICE
 		.pm	= &byt_gpio_pm_ops,
 		.acpi_match_table = ACPI_PTR(byt_gpio_acpi_match),
+#endif
 	},
 };
 
