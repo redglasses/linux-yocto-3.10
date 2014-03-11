@@ -259,7 +259,6 @@ static struct drm_driver sPVRDrmDriver =
 		.ioctl = drm_ioctl,
 		.mmap = PVRMMap,
 		.poll = drm_poll,
-		.fasync = drm_fasync,
 	},
 	.pci_driver =
 	{

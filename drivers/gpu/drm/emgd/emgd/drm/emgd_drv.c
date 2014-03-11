@@ -2475,7 +2475,6 @@ static struct pci_driver emgd_pci_driver = EMGD_PCI_DRIVER;
 	.IOCTL   = drm_ioctl,		   \
     .mmap    = emgd_mmap,          \
     .poll    = drm_poll,           \
-    .fasync  = drm_fasync,         \
     .read    = drm_read,           \
 }
 
