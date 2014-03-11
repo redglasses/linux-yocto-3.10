@@ -156,6 +156,10 @@ struct drm_display_mode {
 	int height_mm;
 
 	/* Actual mode we give to hw */
+	/* EMGD still uses these two */
+	int clock_index; /* this is used for VESA/VGA mode number */
+	int synth_clock; /* perhaps this should be crtc_clock ? */
+	/* END EMGD */
 	int crtc_clock;		/* in KHz */
 	int crtc_hdisplay;
 	int crtc_hblank_start;
