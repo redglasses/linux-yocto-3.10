@@ -151,9 +151,9 @@ static int ath79_spi_setup_cs(struct spi_device *spi)
 	case ATH79_SPI_CS_TYPE_GPIO:
 		flags = GPIOF_DIR_OUT;
 		if (spi->mode & SPI_CS_HIGH)
-			flags |= GPIOF_INIT_HIGH;
-		else
 			flags |= GPIOF_INIT_LOW;
+		else
+			flags |= GPIOF_INIT_HIGH;
 
 		status = gpio_request_one(cdata->cs_line, flags,
 					  dev_name(&spi->dev));
