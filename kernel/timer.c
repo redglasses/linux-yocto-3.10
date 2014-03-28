@@ -1400,7 +1400,7 @@ unsigned long get_next_timer_interrupt(unsigned long now)
 		expires = base->next_timer;
 	}
 #ifdef CONFIG_PREEMPT_RT_FULL
-	rt_spin_unlock(&base->lock);
+	rt_spin_unlock_after_trylock_in_irq(&base->lock);
 #else
 	spin_unlock(&base->lock);
 #endif
@@ -1425,7 +1425,7 @@ void update_process_times(int user_tick)
 	scheduler_tick();
 	run_local_timers();
 	rcu_check_callbacks(cpu, user_tick);
-#if defined(CONFIG_IRQ_WORK) && !defined(CONFIG_PREEMPT_RT_FULL)
+#if defined(CONFIG_IRQ_WORK)
 	if (in_irq())
 		irq_work_run();
 #endif
@@ -1443,8 +1443,6 @@ static void run_timer_softirq(struct softirq_action *h)
 	irq_work_run();
 #endif
 
-	hrtimer_run_pending();
-
 	if (time_after_eq(jiffies, base->timer_jiffies))
 		__run_timers(base);
 }
@@ -1454,8 +1452,39 @@ static void run_timer_softirq(struct softirq_action *h)
  */
 void run_local_timers(void)
 {
+	struct tvec_base *base = __this_cpu_read(tvec_bases);
+
 	hrtimer_run_queues();
-	raise_softirq(TIMER_SOFTIRQ);
+	/*
+	 * We can access this lockless as we are in the timer
+	 * interrupt. If there are no timers queued, nothing to do in
+	 * the timer softirq.
+	 */
+#ifdef CONFIG_PREEMPT_RT_FULL
+	/* On RT, irq work runs from softirq */
+	if (irq_work_needs_cpu()) {
+		raise_softirq(TIMER_SOFTIRQ);
+		return;
+	}
+
+	if (!spin_do_trylock(&base->lock)) {
+		raise_softirq(TIMER_SOFTIRQ);
+		return;
+	}
+#endif
+
+	if (!base->active_timers)
+		goto out;
+
+	/* Check whether the next pending timer has expired */
+	if (time_before_eq(base->next_timer, jiffies))
+		raise_softirq(TIMER_SOFTIRQ);
+out:
+#ifdef CONFIG_PREEMPT_RT_FULL
+	rt_spin_unlock_after_trylock_in_irq(&base->lock);
+#endif
+	/* The ; ensures that gcc won't complain in the !RT case */
+	;
 }
 
 #ifdef __ARCH_WANT_SYS_ALARM
