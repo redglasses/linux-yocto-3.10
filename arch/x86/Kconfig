@@ -461,7 +461,7 @@ config X86_MDFLD
 	select MFD_INTEL_MSIC
 	---help---
 	  Medfield is Intel's Low Power Intel Architecture (LPIA) based Moblin
-	  Internet Device(MID) platform. 
+	  Internet Device(MID) platform.
 	  Unlike standard x86 PCs, Medfield does not have many legacy devices
 	  nor standard legacy replacement devices/features. e.g. Medfield does
 	  not contain i8259, i8254, HPET, legacy BIOS, most of the io ports.
@@ -478,6 +478,13 @@ config X86_INTEL_LPSS
 	  found on Intel Lynxpoint PCH. Selecting this option enables
 	  things like clock tree (common clock framework) and pincontrol
 	  which are needed by the LPSS peripheral drivers.
+
+config BYT_LPSS_BRD
+	bool "PCI mode LPSS support on BYT"
+	depends on X86_INTEL_LPSS
+	---help---
+	  This option is needed if were to use Intel BayTrail LPSS in
+	  PCI mode.
 
 config X86_RDC321X
 	bool "RDC R-321x SoC"
