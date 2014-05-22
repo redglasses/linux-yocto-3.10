@@ -1,0 +1,6 @@
+define KFEATURE_DESCRIPTION "Enable PCI mode Valley Island LPSS I/O Devices"
+define KFEATURE_COMPATIBILITY arch
+
+kconf hardware valleyisland-io-pci.cfg
+
+merge valleyisland-io-1.0
