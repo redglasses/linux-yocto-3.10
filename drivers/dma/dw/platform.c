@@ -203,9 +203,16 @@ static int dw_probe(struct platform_device *pdev)
 
 	chip->dev = dev;
 
-	err = dw_dma_probe(chip, pdata);
+	chip->clk = devm_clk_get(chip->dev, "hclk");
+	if (IS_ERR(chip->clk))
+		return PTR_ERR(chip->clk);
+	err = clk_prepare_enable(chip->clk);
 	if (err)
 		return err;
+
+	err = dw_dma_probe(chip, pdata);
+	if (err)
+		goto err_dw_dma_probe;
 
 	platform_set_drvdata(pdev, chip);
 
@@ -221,6 +228,10 @@ static int dw_probe(struct platform_device *pdev)
 		dw_dma_acpi_controller_register(chip->dw);
 
 	return 0;
+
+err_dw_dma_probe:
+	clk_disable_unprepare(chip->clk);
+	return err;
 }
 
 static int dw_remove(struct platform_device *pdev)
@@ -230,7 +241,10 @@ static int dw_remove(struct platform_device *pdev)
 	if (pdev->dev.of_node)
 		of_dma_controller_free(pdev->dev.of_node);
 
-	return dw_dma_remove(chip);
+	dw_dma_remove(chip);
+	clk_disable_unprepare(chip->clk);
+
+	return 0;
 }
 
 static void dw_shutdown(struct platform_device *pdev)
@@ -238,6 +252,7 @@ static void dw_shutdown(struct platform_device *pdev)
 	struct dw_dma_chip *chip = platform_get_drvdata(pdev);
 
 	dw_dma_shutdown(chip);
+	clk_disable_unprepare(chip->clk);
 }
 
 #ifdef CONFIG_OF
@@ -263,7 +278,10 @@ static int dw_suspend_noirq(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct dw_dma_chip *chip = platform_get_drvdata(pdev);
 
-	return dw_dma_suspend(chip);
+	dw_dma_suspend(chip);
+	clk_disable_unprepare(chip->clk);
+
+	return 0;
 }
 
 static int dw_resume_noirq(struct device *dev)
@@ -271,6 +289,7 @@ static int dw_resume_noirq(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct dw_dma_chip *chip = platform_get_drvdata(pdev);
 
+	clk_prepare_enable(chip->clk);
 	return dw_dma_resume(chip);
 }
 
