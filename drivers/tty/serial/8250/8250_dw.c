@@ -167,6 +167,7 @@ static int dw8250_probe_acpi(struct uart_8250_port *up)
 {
 	const struct acpi_device_id *id;
 	struct uart_port *p = &up->port;
+	struct dw8250_acpi_desc *acpi_desc;
 
 	id = acpi_match_device(p->dev->driver->acpi_match_table, p->dev);
 	if (!id)
@@ -186,6 +187,13 @@ static int dw8250_probe_acpi(struct uart_8250_port *up)
 
 	up->dma->rxconf.src_maxburst = p->fifosize / 4;
 	up->dma->txconf.dst_maxburst = p->fifosize / 4;
+
+	acpi_desc = (struct dw8250_acpi_desc *)id->driver_data;
+	if (!acpi_desc)
+		return 0;
+
+	if (acpi_desc->set_termios)
+		p->set_termios = acpi_desc->set_termios;
 
 	return 0;
 }
@@ -366,12 +374,16 @@ static const struct of_device_id dw8250_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, dw8250_of_match);
 
+static struct dw8250_acpi_desc byt_8250_desc = {
+	.set_termios = byt_set_termios,
+};
+
 static const struct acpi_device_id dw8250_acpi_match[] = {
 	{ "INT33C4", 0 },
 	{ "INT33C5", 0 },
 	{ "INT3434", 0 },
 	{ "INT3435", 0 },
-	{ "80860F0A", 0 },
+	{ "80860F0A", (kernel_ulong_t)&byt_8250_desc},
 	{ },
 };
 MODULE_DEVICE_TABLE(acpi, dw8250_acpi_match);
