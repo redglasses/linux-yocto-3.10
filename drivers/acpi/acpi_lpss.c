@@ -33,8 +33,6 @@ ACPI_MODULE_NAME("acpi_lpss");
 #define LPSS_GENERAL_UART_RTS_OVRD	BIT(3)
 #define LPSS_SW_LTR			0x10
 #define LPSS_AUTO_LTR			0x14
-#define LPSS_TX_INT			0x20
-#define LPSS_TX_INT_MASK		BIT(1)
 
 struct lpss_shared_clock {
 	const char *name;
@@ -75,10 +73,6 @@ static void lpss_uart_setup(struct lpss_private_data *pdata)
 {
 	unsigned int offset;
 	u32 val;
-
-	offset = pdata->dev_desc->prv_offset + LPSS_TX_INT;
-	val = readl(pdata->mmio_base + offset);
-	writel(val | LPSS_TX_INT_MASK, pdata->mmio_base + offset);
 
 	val = readl(pdata->mmio_base + LPSS_UART_CPR);
 	if (!(val & LPSS_UART_CPR_AFCE)) {

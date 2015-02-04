@@ -74,6 +74,8 @@ struct dw8250_acpi_desc {
 #define BYT_PRV_CLK_M_VAL_SHIFT		1
 #define BYT_PRV_CLK_N_VAL_SHIFT		16
 #define BYT_PRV_CLK_UPDATE		(1 << 31)
+#define LPSS_TX_INT			0x820
+#define LPSS_TX_INT_MASK		BIT(1)
 
 static void byt_set_termios(struct uart_port *p, struct ktermios *termios,
 			    struct ktermios *old)
@@ -124,6 +126,10 @@ static void byt_set_termios(struct uart_port *p, struct ktermios *termios,
 	writel(reg, p->membase + BYT_PRV_CLK);
 	reg |= BYT_PRV_CLK_EN | BYT_PRV_CLK_UPDATE;
 	writel(reg, p->membase + BYT_PRV_CLK);
+
+	/* Disable Tx counter interrupts */
+	reg = readl(p->membase + LPSS_TX_INT);
+	writel(reg | LPSS_TX_INT_MASK, p->membase + LPSS_TX_INT);
 
 	serial8250_do_set_termios(p, termios, old);
 }
