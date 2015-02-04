@@ -1366,6 +1366,10 @@ byt_set_termios(struct uart_port *p, struct ktermios *termios,
 	reg |= BYT_PRV_CLK_EN | BYT_PRV_CLK_UPDATE;
 	writel(reg, p->membase + BYT_PRV_CLK);
 
+	/* Disable Tx counter interrupts */
+	reg = readl(p->membase + BYT_TX_OVF_INT);
+	writel(reg | BYT_TX_OVF_INT_MASK, p->membase + BYT_TX_OVF_INT);
+
 	serial8250_do_set_termios(p, termios, old);
 }
 
@@ -1418,9 +1422,6 @@ byt_serial_setup(struct serial_private *priv,
 	port->tx_loadsz = 64;
 	port->dma = dma;
 	port->capabilities = UART_CAP_FIFO | UART_CAP_AFE;
-
-	/* Disable Tx counter interrupts */
-	writel(BYT_TX_OVF_INT_MASK, port->port.membase + BYT_TX_OVF_INT);
 
 	return ret;
 }
