@@ -56,12 +56,12 @@
 
 #define SSP_MAX_BUFFER			96000
 #define SSP_MIN_BUFFER			96000
-#define SSP_MIN_PERIOD_BYTES >->-------640
-#define SSP_MAX_PERIOD_BYTES>-->-------48000
+#define SSP_MIN_PERIOD_BYTES		640
+#define SSP_MAX_PERIOD_BYTES		48000
 
 /*Added Buffer support for 192khz*/
-#define SSP_MAX_BUFFER_192K>--->-------768000
-#define SSP_MAX_PERIOD_BYTES_192K>-----76800
+#define SSP_MAX_BUFFER_192K		768000
+#define SSP_MAX_PERIOD_BYTES_192K	76800
 
 /* TDM 8 support */
 #define SSP_TDM8_CHANNEL 8
