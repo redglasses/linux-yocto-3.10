@@ -479,7 +479,8 @@ int intel_sst_probe(struct pci_dev *pdev,
 
 	pci_set_drvdata(pdev, sst_drv_ctx);
 	register_sst(&pdev->dev);
-	/*sst_debugfs_init(sst_drv_ctx);*/
+	sst_drv_ctx->reset_dsp = false;
+	sst_debugfs_init(sst_drv_ctx);
 	sst_drv_ctx->qos = kzalloc(sizeof(struct pm_qos_request),
 			GFP_KERNEL);
 	if (!sst_drv_ctx->qos)

@@ -53,25 +53,22 @@
  */
 int intel_sst_reset_dsp_byt(void)
 {
+
 	union csr_reg_byt csr;
 
 	csr.full = sst_shim_read64(sst_drv_ctx->shim, SST_CSR);
-
-	/*Shall put lpe_reset=1 here to reset LPE, however this will
-	 *cause intermitent FW download fail issue due to IRAM content
-	 *blocked with FFFFs value in IRAM. To revisit*/
-
-	/*  CRITICAL: We cannot use reset bit 0 reset LPE FW  as this will hang
-	 *  the LPE Core, instead we use stall-bit to control.
-	 */
-	csr.part.lpe_reset = 0 ;
-	csr.part.lpe_reset_vector = 1;
-	csr.part.runstall = 1;
-
+	/* Put the DSP into reset and stall mode */
+	csr.full |= 0x7;
 	sst_shim_write64(sst_drv_ctx->shim, SST_CSR, csr.full);
 	csr.full = sst_shim_read64(sst_drv_ctx->shim, SST_CSR);
 
+	/* Un-reset the DSP */
+	csr.full &= ~(0x1);
+	sst_shim_write64(sst_drv_ctx->shim, SST_CSR, csr.full);
+
+	csr.full = sst_shim_read64(sst_drv_ctx->shim, SST_CSR);
 	return 0;
+
 }
 
 /**
@@ -637,6 +634,12 @@ void sst_dma_free_resources(struct sst_dma *dma)
 	dma_release_channel(dma->ch);
 }
 
+void sst_fill_config()
+{
+	/* Save the physical address in the first 4 bytes of the mailbox */
+	memcpy(sst_drv_ctx->mailbox, &(sst_drv_ctx->fw_ext_phy_add),
+	sizeof(u32));
+}
 /**
  * sst_load_fw - function to load FW into DSP
  *
@@ -668,7 +671,10 @@ int sst_load_fw(const void *fw_in_mem, void *context)
 		if (ret_val)
 			goto free_dma;
 	}
+
+	sst_fill_config();
 	sst_set_fw_state_locked(sst_drv_ctx, SST_FW_LOADED);
+
 	/* bring sst out of reset */
 	ret_val = sst_drv_ctx->ops->start();
 	if (ret_val)

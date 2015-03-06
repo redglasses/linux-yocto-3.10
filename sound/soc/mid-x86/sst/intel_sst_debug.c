@@ -41,12 +41,12 @@
 #include <linux/pm_runtime.h>
 #include <linux/uaccess.h>
 #include <asm/intel_scu_ipc.h>
-#include <asm/intel_scu_ipcutil.h>
+
 #include <sound/intel_sst_ioctl.h>
 #include "../sst_platform.h"
 #include "intel_sst_fw_ipc.h"
 #include "intel_sst_common.h"
-
+#if 0
 /* FIXME: replace with simple_open from 3.4 kernel */
 static int sst_debug_open(struct inode *inode, struct file *file)
 {
@@ -309,6 +309,7 @@ static const struct file_operations sst_debug_osc_clk0_ops = {
 	.write = sst_debug_osc_clk0_write,
 };
 
+#endif
 void sst_debugfs_init(struct intel_sst_drv *sst)
 {
 	sst->debugfs.root = debugfs_create_dir("sst", NULL);
@@ -316,6 +317,7 @@ void sst_debugfs_init(struct intel_sst_drv *sst)
 		pr_err("Failed to create debugfs directory\n");
 		return;
 	}
+#if 0
 	/* Runtime PM enable/disable */
 	if (!debugfs_create_file("runtime_pm", 0600, sst->debugfs.root,
 				sst, &sst_debug_rtpm_ops)) {
@@ -343,6 +345,13 @@ void sst_debugfs_init(struct intel_sst_drv *sst)
 	if (!debugfs_create_file("README", 0400, sst->debugfs.root,
 				sst, &sst_debug_readme_ops)) {
 		pr_err("Failed to create README file\n");
+		return;
+	}
+#endif
+
+	if (!debugfs_create_u32("Force_DSP_Reset", 0600,
+		sst->debugfs.root, &sst->reset_dsp)) {
+		pr_err("Failed to create Force reset\n");
 		return;
 	}
 }

@@ -1,3 +1,4 @@
+
 #ifndef __INTEL_SST_COMMON_H__
 #define __INTEL_SST_COMMON_H__
 /*
@@ -543,6 +544,7 @@ struct intel_sst_drv {
 	struct sst_debugfs debugfs;
 #endif
 	struct pm_qos_request *qos;
+	u32 reset_dsp;
 };
 
 extern struct intel_sst_drv *sst_drv_ctx;

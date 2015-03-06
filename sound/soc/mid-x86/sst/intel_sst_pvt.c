@@ -257,7 +257,7 @@ static void sst_do_recovery(struct intel_sst_drv *sst)
 int sst_wait_timeout(struct intel_sst_drv *sst_drv_ctx, struct sst_block *block)
 {
 	int retval = 0;
-
+	if (!sst_drv_ctx->reset_dsp) {
 	/* NOTE:
 	   Observed that FW processes the alloc msg and replies even
 	   before the alloc thread has finished execution */
@@ -280,6 +280,18 @@ int sst_wait_timeout(struct intel_sst_drv *sst_drv_ctx, struct sst_block *block)
 		   this is because firmare not responding for 5 sec
 		   is equalant to some unrecoverable error of FW */
 		retval = -EBUSY;
+		}
+	} else {
+		block->on = false;
+		pr_err("sst: Wait timed-out %x\n", block->condition);
+
+		sst_do_recovery(sst_drv_ctx);
+		/* settign firmware state as uninit so that the
+		firmware will get redownloaded on next request
+		this is because firmare not responding for 5 sec
+		is equalant to some unrecoverable error of FW */
+		retval = -EBUSY;
+
 	}
 
 	return retval;
