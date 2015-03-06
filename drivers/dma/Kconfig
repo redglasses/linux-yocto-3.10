@@ -34,7 +34,7 @@ if DMADEVICES
 comment "DMA Devices"
 
 config INTEL_MID_DMAC
-	tristate "Intel MID DMA support for Peripheral DMA controllers"
+	bool "Intel MID DMA support for Peripheral DMA controllers"
 	depends on PCI && X86
 	select DMA_ENGINE
 	default n

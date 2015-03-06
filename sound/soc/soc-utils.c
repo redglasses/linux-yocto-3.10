@@ -5,7 +5,7 @@
  *
  * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
  *         Liam Girdwood <lrg@slimlogic.co.uk>
- *         
+ *
  *
  *  This program is free software; you can redistribute  it and/or modify it
  *  under  the terms of  the GNU General  Public License as published by the
@@ -35,7 +35,7 @@ int snd_soc_params_to_frame_size(struct snd_pcm_hw_params *params)
 		return sample_size;
 
 	return snd_soc_calc_frame_size(sample_size, params_channels(params),
-				       1);
+			1);
 }
 EXPORT_SYMBOL_GPL(snd_soc_params_to_frame_size);
 
@@ -65,7 +65,7 @@ static const struct snd_pcm_hardware dummy_dma_hardware = {
 
 	/* Random values to keep userspace happy when checking constraints */
 	.info			= SNDRV_PCM_INFO_INTERLEAVED |
-				  SNDRV_PCM_INFO_BLOCK_TRANSFER,
+		SNDRV_PCM_INFO_BLOCK_TRANSFER,
 	.buffer_bytes_max	= 128*1024,
 	.period_bytes_min	= PAGE_SIZE,
 	.period_bytes_max	= PAGE_SIZE*2,
@@ -91,16 +91,16 @@ static struct snd_soc_platform_driver dummy_platform = {
 
 static struct snd_soc_codec_driver dummy_codec;
 
-#define STUB_RATES	SNDRV_PCM_RATE_8000_192000
+#define STUB_RATES	SNDRV_PCM_RATE_8000_192000 | SNDRV_PCM_RATE_CONTINUOUS
 #define STUB_FORMATS	(SNDRV_PCM_FMTBIT_S8 | \
-			SNDRV_PCM_FMTBIT_U8 | \
-			SNDRV_PCM_FMTBIT_S16_LE | \
-			SNDRV_PCM_FMTBIT_U16_LE | \
-			SNDRV_PCM_FMTBIT_S24_LE | \
-			SNDRV_PCM_FMTBIT_U24_LE | \
-			SNDRV_PCM_FMTBIT_S32_LE | \
-			SNDRV_PCM_FMTBIT_U32_LE | \
-			SNDRV_PCM_FMTBIT_IEC958_SUBFRAME_LE)
+		SNDRV_PCM_FMTBIT_U8 | \
+		SNDRV_PCM_FMTBIT_S16_LE | \
+		SNDRV_PCM_FMTBIT_U16_LE | \
+		SNDRV_PCM_FMTBIT_S24_LE | \
+		SNDRV_PCM_FMTBIT_U24_LE | \
+		SNDRV_PCM_FMTBIT_S32_LE | \
+		SNDRV_PCM_FMTBIT_U32_LE | \
+		SNDRV_PCM_FMTBIT_IEC958_SUBFRAME_LE)
 static struct snd_soc_dai_driver dummy_dai = {
 	.name = "snd-soc-dummy-dai",
 	.playback = {
@@ -116,7 +116,7 @@ static struct snd_soc_dai_driver dummy_dai = {
 		.channels_max	= 384,
 		.rates = STUB_RATES,
 		.formats = STUB_FORMATS,
-	 },
+	},
 };
 
 static int snd_soc_dummy_probe(struct platform_device *pdev)

@@ -433,7 +433,7 @@ config X86_INTEL_CE
 
 config X86_WANT_INTEL_MID
 	bool "Intel MID platform support"
-	depends on X86_32
+	depends on X86_32 || X86_64
 	depends on X86_EXTENDED_PLATFORM
 	---help---
 	  Select to build a kernel capable of supporting Intel MID platform
@@ -446,9 +446,8 @@ config X86_INTEL_MID
 	bool
 
 config X86_MDFLD
-       bool "Medfield MID platform"
+	bool "Medfield MID platform"
 	depends on PCI
-	depends on PCI_GOANY
 	depends on X86_IO_APIC
 	select X86_INTEL_MID
 	select SFI
@@ -465,6 +464,18 @@ config X86_MDFLD
 	  Unlike standard x86 PCs, Medfield does not have many legacy devices
 	  nor standard legacy replacement devices/features. e.g. Medfield does
 	  not contain i8259, i8254, HPET, legacy BIOS, most of the io ports.
+
+config X86_BYT
+	bool "Baytrail platform"
+	depends on PCI
+	depends on X86_IO_APIC
+	select INTEL_SCU_IPC
+	select X86_PLATFORM_DEVICES
+	select X86_INTEL_MID
+	select APB_TIMER
+	select DW_APB_TIMER
+	 ---help---
+	   Baytrail is Intel's Low Power Intel Architecture (LPIA) based platform.
 
 endif
 

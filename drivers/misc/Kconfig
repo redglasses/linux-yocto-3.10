@@ -517,6 +517,11 @@ config SI570
 	  To compile this driver as a module, choose M here: the module
 	  will be called si570
 
+config VLV2_PLAT_CLK
+	tristate "VLV2 platform clock control driver"
+	help
+	  Driver to enable the platform clock control for Valleyview2
+
 config LATTICE_ECP3_CONFIG
 	tristate "Lattice ECP3 FPGA bitstream configuration via SPI"
 	depends on SPI && SYSFS
