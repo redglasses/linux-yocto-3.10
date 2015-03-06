@@ -16,6 +16,9 @@
 #define SSP_S24_SLOT_WIDTH		24
 #define SSP_S32_SLOT_WIDTH		32
 
+/* Uncomment this macro to enable 192k sample rate */
+/* #define ENABLE_SSP_STEREO_192K */
+
 /*
  * Stereo, 2 slot are needed.
  * Each TX/RX bit in slot mask represents 1 channel.
@@ -49,9 +52,14 @@ static struct snd_pcm_hardware ssp_pcm_hw_stereo = {
 	.rate_max = SSP_MAX_RATE,
 	.channels_min =	SSP_MONO_CHANNEL,
 	.channels_max =	SSP_STEREO_CHANNEL,
-	.buffer_bytes_max = SSP_MAX_BUFFER,
 	.period_bytes_min = SSP_MIN_PERIOD_BYTES,
+#ifdef ENABLE_SSP_STEREO_192K
+	.buffer_bytes_max = SSP_MAX_BUFFER_192K,
+	.period_bytes_max = SSP_MAX_PERIOD_BYTES_192K,
+#else
+	.buffer_bytes_max = SSP_MAX_BUFFER,
 	.period_bytes_max = SSP_MAX_PERIOD_BYTES,
+#endif
 	.periods_min = SSP_MIN_PERIODS,
 	.periods_max = SSP_MAX_PERIODS,
 	.fifo_size = SSP_FIFO_SIZE,
