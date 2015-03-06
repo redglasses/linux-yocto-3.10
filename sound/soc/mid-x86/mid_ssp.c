@@ -753,7 +753,7 @@ static int ssp_set_dai_fmt(struct snd_soc_dai *cpu_dai,
 	 * SSP CLK Direction
 	 * SSP FRMSYNC Direction
 	 * Note: SSP direction should be inverse of CBS or CFS
-	 * 		e.g. CBS = codec bit CLK is slave, so SSP = Master
+	 *		e.g. CBS = codec bit CLK is slave, so SSP = Master
 	 */
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
 		case SND_SOC_DAIFMT_CBS_CFS:

@@ -91,9 +91,9 @@ static int byt_lpe_hw_params(struct snd_pcm_substream *substream,
 	}
 #endif
 
-	/* BYT:  	Users to uncomment if codec code needs to set clk frequency
-	 * 			Commented out for AK4614 AIC as the MCLK
-	 * 			is driven by on-board X'tal at MCKI
+	/* BYT:		Users to uncomment if codec code needs to set clk frequency
+	 *			Commented out for AK4614 AIC as the MCLK
+	 *			is driven by on-board X'tal at MCKI
 	 */
 	/* Set clock configuration in codec DAI configuration */
 	/*	ret = snd_soc_dai_set_sysclk(codec_dai, AK4614_CLKID_MCLK,

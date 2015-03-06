@@ -63,11 +63,11 @@
 #endif /* __MRFL_SPECIFIC_TMP__ */
 
 #define BYT_LPE_SHIM_BASE_ADDRESS 0x140000
-#define BYT_LPE_SHIM_SIZE 		0x100
-#define BYT_SSP_SIZE 			0x80
-#define BYT_SSP0_START_ADDRESS 	0X0A0000
-#define BYT_SSP1_START_ADDRESS 	0X0A1000
-#define BYT_SSP2_START_ADDRESS 	0X0A2000
+#define BYT_LPE_SHIM_SIZE		0x100
+#define BYT_SSP_SIZE			0x80
+#define BYT_SSP0_START_ADDRESS	0X0A0000
+#define BYT_SSP1_START_ADDRESS	0X0A1000
+#define BYT_SSP2_START_ADDRESS	0X0A2000
 
 #define BYT_LPE_SHIM_IAPIS_SSP0_BIT 0x8
 #define BYT_LPE_SHIM_IAPIS_SSP1_BIT 0x10
@@ -275,8 +275,8 @@ DEFINE_REG(SSCR5, 0x78)
 	DEFINE_FIELD(SSCR3, I2S_TX_EN, 0x1, 9);			/*Enable data TX on both I2S slots*/
 	DEFINE_FIELD(SSCR3, I2S_RX_SS_FIX_EN, 0x1, 4);	/*Enable RX Slow Swap fix*/
 	DEFINE_FIELD(SSCR3, I2S_TX_SS_FIX_EN, 0x1, 3);	/*Enable TX Slow Swap fix*/
-	DEFINE_FIELD(SSCR3, I2S_MODE_EN, 0x1, 1); 		/*Enables I2S mode*/
-	DEFINE_FIELD(SSCR3, FRM_MST_EN, 0x1, 0); 		/*Set for I2S and PCM Master mode ONLY*/
+	DEFINE_FIELD(SSCR3, I2S_MODE_EN, 0x1, 1);		/*Enables I2S mode*/
+	DEFINE_FIELD(SSCR3, FRM_MST_EN, 0x1, 0);		/*Set for I2S and PCM Master mode ONLY*/
 
 	/* SSP SSPSP fields definitions */	//------------------------------ BYT: ok
 	DEFINE_FIELD(SSPSP, FSRT, 0x1, 25);		/* Frame Sync Relative Timing Bit */

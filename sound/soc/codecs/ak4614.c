@@ -233,7 +233,7 @@ static int ak4614_hw_params(struct snd_pcm_substream *substream,
 		struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
-	u8 	fs;
+	u8	fs;
 
 	akdbgprt("\t[AK4614] %s(%d)\n",__FUNCTION__,__LINE__);
 
@@ -267,7 +267,7 @@ static int ak4614_set_dai_sysclk(struct snd_soc_dai *dai, int clk_id,
 		unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = dai->codec;
-	u8 	fs;
+	u8	fs;
 
 	switch (clk_id) {
 		case AK4614_CLKID_MCLK:

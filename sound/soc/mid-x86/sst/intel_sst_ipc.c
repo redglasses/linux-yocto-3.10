@@ -72,9 +72,9 @@ static int sst_send_runtime_param(struct snd_sst_runtime_params *params)
 
 #ifdef SST_DRV_BYT
 	/* FIXME: BYT LPE FW yet to support IPC_IA_SET_RUNTIME_PARAMS message,
-	 * 	 So, we just return directly before message creation to avoid memory leak
+	 *	 So, we just return directly before message creation to avoid memory leak
 	 *   When this is supported in FW, just remove this block entirely as it is handled
-	 * 	 below.
+	 *	 below.
 	 */
 	return ret_val;
 #endif

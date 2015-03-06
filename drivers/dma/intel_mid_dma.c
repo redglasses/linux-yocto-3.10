@@ -68,15 +68,14 @@ struct intel_mid_dma_probe_info {
 #define INFO(_max_chan, _ch_base, _block_size, _pimr_mask,	\
 		_pimr_base, _dword_trf, _pimr_offset, _pdma_ops)	\
 ((kernel_ulong_t)&(struct intel_mid_dma_probe_info) {	\
- .max_chan = (_max_chan),			\
- .ch_base = (_ch_base),				\
- .block_size = (_block_size),			\
- .pimr_mask = (_pimr_mask),			\
- .pimr_base = (_pimr_base),			\
- .dword_trf = (_dword_trf),			\
- .pimr_offset = (_pimr_offset),			\
- .pdma_ops = (_pdma_ops)				\
- })
+.max_chan = (_max_chan),			\
+.ch_base = (_ch_base),				\
+.block_size = (_block_size),			\
+.pimr_mask = (_pimr_mask),			\
+.pimr_base = (_pimr_base),			\
+.dword_trf = (_dword_trf),			\
+.pimr_offset = (_pimr_offset),			\
+.pdma_ops = (_pdma_ops)				})
 
 extern int to_load_bin_ssp(void);
 /*****************************************************************************

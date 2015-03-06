@@ -52,9 +52,9 @@ MODULE_VERSION("1.0.4");
 
 #define STEREO 2
 #define TDM8 8
-#define SSCR0_SSE 		0X00000080
+#define SSCR0_SSE		0X00000080
 #define CLRBIT_SFRMWDTH 0xFFC0FFFF /*clear SSPSP bit: SFRMWDTH*/
-#define SSSR_CSS 		0x00400000
+#define SSSR_CSS		0x00400000
 #define SSP_DATA_TX			0
 #define SSP_DATA_RX			1
 
@@ -1101,7 +1101,7 @@ static inline void i2s_enable(struct intel_mid_i2s_hdl *drv_data, const struct i
 		set_SSCR0_reg(drv_data->ioaddr, SSE);
 
 		/*For CAPTURE usage in SSP MASTER mode
-		 * 	Dummy write to SSDR needed to initiate FS.
+		 *	Dummy write to SSDR needed to initiate FS.
 		 *	N/A to Stereo mode
 		 */
 		if((SSPSCLK_MASTER_MODE == ps_settings->sspslclk_direction)

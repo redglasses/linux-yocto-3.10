@@ -229,11 +229,11 @@ struct snd_sst_fw_build_info {
 #ifdef SST_DRV_BYT
 // ---- Cater for BYT LPE FW first
 struct snd_sst_fw_info {
-	struct snd_sst_fw_version fw_version; 		/* Firmware version */
-	struct snd_sst_fw_build_info build_info;	 	/* Firmware build info */
+	struct snd_sst_fw_version fw_version;		/* Firmware version */
+	struct snd_sst_fw_build_info build_info;		/* Firmware build info */
 	__u8 audio_codecs_supported[8];			/* Codecs supported by FW */
-	__u32 recommend_min_duration; 			/* Min duration for Lowpower Playback */
-	__u8 max_pcm_streams_supported; 		/* Max num of PCM streams supported */
+	__u32 recommend_min_duration;			/* Min duration for Lowpower Playback */
+	__u8 max_pcm_streams_supported;		/* Max num of PCM streams supported */
 	__u8 max_enc_streams_supported;			/* Max number of Encoded streams  */
 	__u16 reserved;					/* 32 bit alignment*/
 	struct snd_sst_ppp_info ppp_info; /* pre_processing mod cap info */

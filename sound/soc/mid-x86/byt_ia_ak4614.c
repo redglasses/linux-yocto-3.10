@@ -63,12 +63,12 @@ struct byt_mc_private {
  * Each sound card may have its own unique function if the settings are unique.
  * The following need to be determined according to:
  * 1) Formats:
- * 	Refer soc_dai.h for ASoC supported flags
- * 	Current BYT supported PCM format
- *  	-SND_SOC_DAIFMT_I2S
- *  	-SND_SOC_DAIFMT_TDM256_LEFT_J [new]
+ *	Refer soc_dai.h for ASoC supported flags
+ *	Current BYT supported PCM format
+ *	-SND_SOC_DAIFMT_I2S
+ *	-SND_SOC_DAIFMT_TDM256_LEFT_J [new]
  *
- * 	BYT-AK4614 Clock schemes:
+ *	BYT-AK4614 Clock schemes:
  *     -TDM8 uses Normal Bit Clk, Normal Frame Clk
  *             SND_SOC_DAIFMT_NB_NF
  *     -I2S uses inverted Frame Clk
@@ -79,15 +79,15 @@ struct byt_mc_private {
  *               both from SSP (CBS, CFS)
  *
  * 2) TDM slot parameters:
- * 	 Refer byt_machine.h for defined macro
- * 		nb_slot = <desired slot size>; (2 vs 8)
- * 		slot_width =  <desired slot size>; (32bits)
- * 		tx_mask = <format slot mask>;
- * 		rx_mask = <format slot mask>;
+ *	Refer byt_machine.h for defined macro
+ *		nb_slot = <desired slot size>; (2 vs 8)
+ *		slot_width =  <desired slot size>; (32bits)
+ *		tx_mask = <format slot mask>;
+ *		rx_mask = <format slot mask>;
  *
  * 3) Tristate settings:
- * 	-  Tristate offset should be careful set depending on desired behaviour
- * 		e.g. tristate = BIT(FRAME_SYNC_RELATIVE_TIMING_BIT);
+ *	-  Tristate offset should be careful set depending on desired behaviour
+ *		e.g. tristate = BIT(FRAME_SYNC_RELATIVE_TIMING_BIT);
  */
 static int byt_ssp0_ia_dai_link_hw_params(struct snd_pcm_substream *substream,
 		struct snd_pcm_hw_params *params)
