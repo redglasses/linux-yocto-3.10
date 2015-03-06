@@ -9,7 +9,7 @@ config SND_SOC_I2C_AND_SPI
 	default y if SPI_MASTER=y
 
 config SND_SOC_DUMMY_CODEC
-	bool "Use dummy codec for Intel(R) Baytrail Platform with AK4614 codec"
+	bool "Use dummy codec for Intel(R) Baytrail Platform"
 	depends on SND_BYT_AK4614
 	default n
 	---help---
