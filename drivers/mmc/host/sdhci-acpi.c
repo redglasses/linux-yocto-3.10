@@ -341,7 +341,8 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
 		goto err_free;
 
 	if (sdhci_acpi_flag(c, SDHCI_ACPI_SD_CD)) {
-		if (mmc_gpio_request_cd(host->mmc, gpio, 0)) {
+		if (gpio < 0 || mmc_gpio_request_cd(host->mmc, gpio, 0)) {
+			dev_warn(dev, "failed to setup card detect gpio\n");
 			c->use_runtime_pm = false;
 		}
 	}
