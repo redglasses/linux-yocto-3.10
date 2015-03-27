@@ -51,8 +51,6 @@ static int byt_clk_setup(void)
 	if (IS_ERR(clk))
 		return PTR_ERR(clk);
 
-	clk_register_clkdev(clk, "hclk", "0000:00:1e.0");
-
 	clk = clk_register_fixed_rate(NULL, "spi_clk", "lpss_clk", 0, 50000000);
 	if (IS_ERR(clk))
 		return PTR_ERR(clk);
