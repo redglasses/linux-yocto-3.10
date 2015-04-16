@@ -1467,6 +1467,17 @@ void serial8250_tx_chars(struct uart_8250_port *up)
 }
 EXPORT_SYMBOL_GPL(serial8250_tx_chars);
 
+static int tx_data_ready(struct uart_8250_port *up)
+{
+	struct uart_port *port = &up->port;
+	struct circ_buf *xmit = &port->state->xmit;
+
+	if (uart_circ_empty(xmit) || uart_tx_stopped(port))
+		return 0;
+	else
+		return 1;
+}
+
 unsigned int serial8250_modem_status(struct uart_8250_port *up)
 {
 	struct uart_port *port = &up->port;
@@ -1501,10 +1512,10 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
 	unsigned long flags;
 	struct uart_8250_port *up =
 		container_of(port, struct uart_8250_port, port);
-	int dma_err = 0;
+	int dma_err = 0, handled = 0;
 
 	if (iir & UART_IIR_NO_INT)
-		return 0;
+		return handled;
 
 	spin_lock_irqsave(&port->lock, flags);
 
@@ -1518,13 +1529,19 @@ int serial8250_handle_irq(struct uart_port *port, unsigned int iir)
 
 		if (!up->dma || dma_err)
 			status = serial8250_rx_chars(up, status);
+
+		handled = 1;
 	}
 	serial8250_modem_status(up);
-	if (!up->dma && (status & UART_LSR_THRE))
+
+	if (!up->dma && (status & UART_LSR_THRE) &&
+	    tx_data_ready(up)) {
 		serial8250_tx_chars(up);
+		handled = 1;
+	}
 
 	spin_unlock_irqrestore(&port->lock, flags);
-	return 1;
+	return handled;
 }
 EXPORT_SYMBOL_GPL(serial8250_handle_irq);
 
