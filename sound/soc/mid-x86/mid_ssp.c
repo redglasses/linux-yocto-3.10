@@ -950,9 +950,6 @@ static int ssp_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
 	}
 
 	switch (freq) {
-		case 192000:
-			i2s_config->master_mode_standard_freq = SSP_FRM_FREQ_192_000;
-			break;
 		case 48000:
 			i2s_config->master_mode_standard_freq = SSP_FRM_FREQ_48_000;
 			/* Users to determine serial protocol parameters */
@@ -1274,7 +1271,7 @@ static struct snd_soc_dai_ops ssp_dai_ops = {
 		SNDRV_PCM_RATE_16000 | SNDRV_PCM_RATE_22050 | \
 		SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000)
 
-#define SSP_SAMPLE_RATES ( SNDRV_PCM_RATE_8000_192000 | SNDRV_PCM_RATE_CONTINUOUS)
+#define SSP_SAMPLE_RATES (  SNDRV_PCM_RATE_CONTINUOUS)
 
 #define SSP_SUPPORTED_FORMATS ( SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S24_3LE | \
 		SNDRV_PCM_FMTBIT_S16_LE | \

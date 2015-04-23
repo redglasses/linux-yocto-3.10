@@ -45,7 +45,7 @@
 #define SSP2_PCM_DAI_NAME "ssp2-pcm-cpu-dai"
 
 #define SSP_MIN_RATE		8000
-#define SSP_MAX_RATE		192000
+#define SSP_MAX_RATE		48000
 #define SSP_MIN_PERIODS		10
 #define SSP_MAX_PERIODS		50
 #define SSP_FIFO_SIZE		0
@@ -58,10 +58,6 @@
 #define SSP_MIN_BUFFER			96000
 #define SSP_MIN_PERIOD_BYTES		640
 #define SSP_MAX_PERIOD_BYTES		48000
-
-/*Added Buffer support for 192khz*/
-#define SSP_MAX_BUFFER_192K		768000
-#define SSP_MAX_PERIOD_BYTES_192K	76800
 
 /* TDM 8 support */
 #define SSP_TDM8_CHANNEL 8

@@ -63,7 +63,6 @@ enum mrst_ssp_master_mode_clock_selection {
 
 enum mrst_ssp_frm_freq {
 	SSP_FRM_FREQ_UNDEFINED = 0,
-	SSP_FRM_FREQ_192_000,
 	SSP_FRM_FREQ_48_000,
 	SSP_FRM_FREQ_44_100,
 	SSP_FRM_FREQ_22_050,

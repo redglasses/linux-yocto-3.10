@@ -2252,9 +2252,6 @@ static int get_frequency(enum mrst_ssp_frm_freq freq){
 		case SSP_FRM_FREQ_48_000:
 			requested_freq = 48000;
 			break;
-		case SSP_FRM_FREQ_192_000:
-			requested_freq = 192000;
-			break;
 		case SSP_FRM_FREQ_18_900:
 			requested_freq = 18900;
 			break;

@@ -403,7 +403,6 @@ static int byt_init(struct snd_soc_pcm_runtime *runtime)
 
 /* Tested rates for SSP in Master Mode:
  * 8kHz, 16kHz, 18.9kHz, 48kHz
- * 192kHz is supported only in I2S mode
  * Edit this list to suit your codec AND platform supported rates*/
 static unsigned int rate_8000[] = {
 	8000,
@@ -419,10 +418,6 @@ static unsigned int rate_18900[] = {
 
 static unsigned int rate_48000[] = {
 	48000,
-};
-
-static unsigned int rate_192000[] = {
-	192000,
 };
 
 static struct snd_pcm_hw_constraint_list constraints_rate_8000 = {
@@ -445,11 +440,6 @@ static struct snd_pcm_hw_constraint_list constraints_rate_48000 = {
 	.list	= rate_48000,
 };
 
-static struct snd_pcm_hw_constraint_list constraints_rate_192000 = {
-	.count	= ARRAY_SIZE(rate_192000),
-	.list	= rate_192000,
-};
-
 static unsigned int channels_2[] = {
 	2,
 };
@@ -470,7 +460,7 @@ static struct snd_pcm_hw_constraint_list constraints_8ch = {
 
 /* dai_link_startup is split into 3 so that individual SSP will be constrained
  * to different rates.
- * e.g. 8k, 16k, 18.9k, 48k and 192k for different SSPs
+ * e.g. 8k, 16k, 18.9k and 48k for different SSPs
  */
 /*SSP0: 48kHz*/
 static int byt_ssp0_ia_dai_link_startup(struct snd_pcm_substream *substream)
