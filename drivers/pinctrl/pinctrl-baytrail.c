@@ -126,11 +126,12 @@ static struct pinctrl_gpio_range byt_ranges[] = {
 	},
 };
 
+static DEFINE_SPINLOCK(byt_reg_access_lock);
+
 struct byt_gpio {
 	struct gpio_chip		chip;
 	struct irq_domain		*domain;
 	struct platform_device		*pdev;
-	spinlock_t			lock;
 	void __iomem			*reg_base;
 	struct pinctrl_gpio_range	*range;
 };
@@ -172,6 +173,7 @@ static int byt_gpio_request(struct gpio_chip *chip, unsigned offset)
 	void __iomem *reg = byt_gpio_reg(chip, offset, BYT_CONF0_REG);
 	u32 value;
 	bool special;
+	unsigned long flags;
 
 	/*
 	 * In most cases, func pin mux 000 means GPIO function.
@@ -179,7 +181,10 @@ static int byt_gpio_request(struct gpio_chip *chip, unsigned offset)
 	 * GPIO function. Only allow user to export pin with
 	 * func pin mux preset as GPIO function by BIOS/FW.
 	 */
+	spin_lock_irqsave(&byt_reg_access_lock, flags);
 	value = readl(reg) & BYT_PIN_MUX;
+	spin_unlock_irqrestore(&byt_reg_access_lock, flags);
+
 	special = is_special_pin(vg, offset);
 	if ((special && value != 1) || (!special && value)) {
 		dev_err(&vg->pdev->dev,
@@ -198,11 +203,17 @@ static void byt_gpio_free(struct gpio_chip *chip, unsigned offset)
 	void __iomem *reg = byt_gpio_reg(&vg->chip, offset, BYT_CONF0_REG);
 	u32 value;
 	unsigned int virq;
+	unsigned long flags;
+
+	spin_lock_irqsave(&byt_reg_access_lock, flags);
 
 	/* clear interrupt triggering */
 	value = readl(reg);
 	value &= ~(BYT_TRIG_POS | BYT_TRIG_NEG | BYT_TRIG_LVL);
 	writel(value, reg);
+
+	spin_unlock_irqrestore(&byt_reg_access_lock, flags);
+
 	virq = irq_find_mapping(vg->domain, offset);
 	irq_dispose_mapping(virq);
 
@@ -220,7 +231,7 @@ static int byt_irq_type(struct irq_data *d, unsigned type)
 	if (offset >= vg->chip.ngpio)
 		return -EINVAL;
 
-	spin_lock_irqsave(&vg->lock, flags);
+	spin_lock_irqsave(&byt_reg_access_lock, flags);
 	value = readl(reg);
 
 	/* For level trigges the BYT_TRIG_POS and BYT_TRIG_NEG bits
@@ -245,7 +256,7 @@ static int byt_irq_type(struct irq_data *d, unsigned type)
 	}
 	writel(value, reg);
 
-	spin_unlock_irqrestore(&vg->lock, flags);
+	spin_unlock_irqrestore(&byt_reg_access_lock, flags);
 
 	return 0;
 }
@@ -253,17 +264,23 @@ static int byt_irq_type(struct irq_data *d, unsigned type)
 static int byt_gpio_get(struct gpio_chip *chip, unsigned offset)
 {
 	void __iomem *reg = byt_gpio_reg(chip, offset, BYT_VAL_REG);
-	return readl(reg) & BYT_LEVEL;
+	u32 value;
+	unsigned long flags;
+
+	spin_lock_irqsave(&byt_reg_access_lock, flags);
+	value = readl(reg) & BYT_LEVEL;
+	spin_unlock_irqrestore(&byt_reg_access_lock, flags);
+
+	return value;
 }
 
 static void byt_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 {
-	struct byt_gpio *vg = to_byt_gpio(chip);
 	void __iomem *reg = byt_gpio_reg(chip, offset, BYT_VAL_REG);
 	unsigned long flags;
 	u32 old_val;
 
-	spin_lock_irqsave(&vg->lock, flags);
+	spin_lock_irqsave(&byt_reg_access_lock, flags);
 
 	old_val = readl(reg);
 
@@ -272,23 +289,22 @@ static void byt_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	else
 		writel(old_val & ~BYT_LEVEL, reg);
 
-	spin_unlock_irqrestore(&vg->lock, flags);
+	spin_unlock_irqrestore(&byt_reg_access_lock, flags);
 }
 
 static int byt_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 {
-	struct byt_gpio *vg = to_byt_gpio(chip);
 	void __iomem *reg = byt_gpio_reg(chip, offset, BYT_VAL_REG);
 	unsigned long flags;
 	u32 value;
 
-	spin_lock_irqsave(&vg->lock, flags);
+	spin_lock_irqsave(&byt_reg_access_lock, flags);
 
 	value = readl(reg) | BYT_DIR_MASK;
 	value &= ~BYT_INPUT_EN;		/* active low */
 	writel(value, reg);
 
-	spin_unlock_irqrestore(&vg->lock, flags);
+	spin_unlock_irqrestore(&byt_reg_access_lock, flags);
 
 	return 0;
 }
@@ -296,12 +312,11 @@ static int byt_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 static int byt_gpio_direction_output(struct gpio_chip *chip,
 				     unsigned gpio, int value)
 {
-	struct byt_gpio *vg = to_byt_gpio(chip);
 	void __iomem *reg = byt_gpio_reg(chip, gpio, BYT_VAL_REG);
 	unsigned long flags;
 	u32 reg_val;
 
-	spin_lock_irqsave(&vg->lock, flags);
+	spin_lock_irqsave(&byt_reg_access_lock, flags);
 
 	reg_val = readl(reg) | BYT_DIR_MASK;
 	reg_val &= ~(BYT_OUTPUT_EN | BYT_INPUT_EN);
@@ -311,7 +326,7 @@ static int byt_gpio_direction_output(struct gpio_chip *chip,
 	else
 		writel(reg_val & ~BYT_LEVEL, reg);
 
-	spin_unlock_irqrestore(&vg->lock, flags);
+	spin_unlock_irqrestore(&byt_reg_access_lock, flags);
 
 	return 0;
 }
@@ -323,7 +338,7 @@ static void byt_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 	unsigned long flags;
 	u32 conf0, val, offs;
 
-	spin_lock_irqsave(&vg->lock, flags);
+	spin_lock_irqsave(&byt_reg_access_lock, flags);
 
 	for (i = 0; i < vg->chip.ngpio; i++) {
 		offs = vg->range->pins[i] * 16;
@@ -342,7 +357,7 @@ static void byt_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 			   conf0 & BYT_TRIG_POS ? " rise" : "",
 			   conf0 & BYT_TRIG_LVL ? " level" : "");
 	}
-	spin_unlock_irqrestore(&vg->lock, flags);
+	spin_unlock_irqrestore(&byt_reg_access_lock, flags);
 }
 
 static int byt_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
@@ -361,12 +376,14 @@ static void byt_gpio_irq_handler(unsigned irq, struct irq_desc *desc)
 	u32 pending;
 	unsigned virq;
 	int looplimit = 0;
+	unsigned long flags;
 
 	/* check from GPIO controller which pin triggered the interrupt */
 	for (base = 0; base < vg->chip.ngpio; base += 32) {
 
 		reg = byt_gpio_reg(&vg->chip, base, BYT_INT_STAT_REG);
 
+		spin_lock_irqsave(&byt_reg_access_lock, flags);
 		while ((pending = readl(reg))) {
 			pin = __ffs(pending);
 			mask = BIT(pin);
@@ -394,6 +411,7 @@ static void byt_gpio_irq_handler(unsigned irq, struct irq_desc *desc)
 				break;
 			}
 		}
+		spin_unlock_irqrestore(&byt_reg_access_lock, flags);
 	}
 	chip->irq_eoi(data);
 }
@@ -417,14 +435,17 @@ static void byt_gpio_irq_init_hw(struct byt_gpio *vg)
 {
 	void __iomem *reg;
 	u32 base, value;
+	unsigned long flags;
 
 	/* clear interrupt status trigger registers */
 	for (base = 0; base < vg->chip.ngpio; base += 32) {
 		reg = byt_gpio_reg(&vg->chip, base, BYT_INT_STAT_REG);
+		spin_lock_irqsave(&byt_reg_access_lock, flags);
 		writel(0xffffffff, reg);
 		/* make sure trigger bits are cleared, if not then a pin
 		   might be misconfigured in bios */
 		value = readl(reg);
+		spin_unlock_irqrestore(&byt_reg_access_lock, flags);
 		if (value)
 			dev_err(&vg->pdev->dev,
 				"GPIO interrupt error, pins misconfigured\n");
@@ -525,8 +546,6 @@ static int byt_gpio_probe(struct platform_device *pdev)
 	vg->reg_base = devm_ioremap_resource(dev, mem_rc);
 	if (IS_ERR(vg->reg_base))
 		return PTR_ERR(vg->reg_base);
-
-	spin_lock_init(&vg->lock);
 
 	gc = &vg->chip;
 	gc->label = dev_name(&pdev->dev);
