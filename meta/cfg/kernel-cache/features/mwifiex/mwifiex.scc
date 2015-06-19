@@ -1,0 +1,4 @@
+define KFEATURES_DESCRIPTION "Enable Marvell wireless driver"
+define KFEATURES_COMPATIBILITY board
+
+kconf hardware mwifiex.cfg
