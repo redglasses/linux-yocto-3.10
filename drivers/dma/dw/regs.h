@@ -251,7 +251,6 @@ struct dw_dma {
 	void __iomem		*regs;
 	struct dma_pool		*desc_pool;
 	struct tasklet_struct	tasklet;
-	struct clk		*clk;
 
 	u8			all_chan_mask;
 
