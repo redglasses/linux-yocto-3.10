@@ -1,3 +1,7 @@
+include features/usb/ehci-hcd.scc
+include features/scsi/disk.scc
+include cfg/usb-mass-storage.scc
+
 include rapidio.scc
 
 kconf hardware axxiapowerpc.cfg
